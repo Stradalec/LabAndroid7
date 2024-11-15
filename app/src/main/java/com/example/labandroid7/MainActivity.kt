@@ -1,5 +1,6 @@
 package com.example.labandroid7
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -34,10 +35,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         Timber.plant(Timber.DebugTree())
 
+
         val toolbar : Toolbar = findViewById(R.id.toolbar);
         val searchEditText: EditText = findViewById(R.id.et_search)
         lateinit var privateContactList: List<Contact>
         lateinit var MyAdapter: ContactAdapter
+        val sharedPref = this?.getPreferences(Context.MODE_PRIVATE)
         val recyclerView: RecyclerView = findViewById(R.id.rView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -52,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+
         searchEditText.addTextChangedListener (object: TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }
@@ -64,7 +68,11 @@ class MainActivity : AppCompatActivity() {
                 MyAdapter.notifyDataSetChanged()
             }
 
-            override fun afterTextChanged(s: Editable?) {
+            override fun afterTextChanged(s: Editable?)
+            {
+                val editor =  sharedPref!!.edit()
+                editor.putString("SEARCH_FILTER", s.toString())
+                editor.apply()
             }
         })
 
