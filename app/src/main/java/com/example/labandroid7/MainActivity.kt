@@ -45,7 +45,8 @@ class MainActivity : AppCompatActivity() {
             val contacts = getContacts()
             privateContactList = contacts
             withContext(Dispatchers.Main){
-                MyAdapter = ContactAdapter(contacts)
+                MyAdapter = ContactAdapter(ContactDiffCallback())
+                MyAdapter.submitList(contacts)
                 recyclerView.adapter = MyAdapter
             }
         }
@@ -59,7 +60,8 @@ class MainActivity : AppCompatActivity() {
                 val filter = searchEditText.text.toString()
                 Timber.d("Search started")
                 val filtered = filtered(privateContactList, filter)
-                MyAdapter.updateContacts(filtered)
+                MyAdapter.submitList(filtered)
+                MyAdapter.notifyDataSetChanged()
             }
 
             override fun afterTextChanged(s: Editable?) {
