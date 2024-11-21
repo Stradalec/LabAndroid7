@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 
-class ContactAdapter(private val diffCallback: ContactDiffCallback) : ListAdapter<Contact, ContactAdapter.ContactViewHolder>(diffCallback) {
+class ContactAdapter : ListAdapter<Contact, ContactAdapter.ContactViewHolder>(ContactDiffCallback()){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -39,5 +39,15 @@ class ContactAdapter(private val diffCallback: ContactDiffCallback) : ListAdapte
                 itemView.context.startActivity(intent)
             }
         }
+    }
+}
+
+class ContactDiffCallback : DiffUtil.ItemCallback<Contact>() {
+    override fun areItemsTheSame(oldItem: Contact, newItem: Contact): Boolean {
+        return oldItem.name == newItem.name
+    }
+
+    override fun areContentsTheSame(oldItem: Contact, newItem: Contact): Boolean {
+        return oldItem == newItem
     }
 }

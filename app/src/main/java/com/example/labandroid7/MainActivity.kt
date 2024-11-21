@@ -36,8 +36,8 @@ class MainActivity : AppCompatActivity() {
 
         val toolbar : Toolbar = findViewById(R.id.toolbar);
         val searchEditText: EditText = findViewById(R.id.et_search)
-        lateinit var privateContactList: List<Contact>
-        lateinit var MyAdapter: ContactAdapter
+        var privateContactList: List<Contact>  = emptyList()
+        var myAdapter =  ContactAdapter()
         val recyclerView: RecyclerView = findViewById(R.id.rView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -45,9 +45,8 @@ class MainActivity : AppCompatActivity() {
             val contacts = getContacts()
             privateContactList = contacts
             withContext(Dispatchers.Main){
-                MyAdapter = ContactAdapter(ContactDiffCallback())
-                MyAdapter.submitList(contacts)
-                recyclerView.adapter = MyAdapter
+                myAdapter.submitList(contacts)
+                recyclerView.adapter = myAdapter
             }
         }
 
@@ -60,8 +59,8 @@ class MainActivity : AppCompatActivity() {
                 val filter = searchEditText.text.toString()
                 Timber.d("Search started")
                 val filtered = filtered(privateContactList, filter)
-                MyAdapter.submitList(filtered)
-                MyAdapter.notifyDataSetChanged()
+                myAdapter.submitList(filtered)
+                myAdapter.notifyDataSetChanged()
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -96,14 +95,20 @@ class MainActivity : AppCompatActivity() {
             return  inputContact
             Timber.d("Nothing to filter")
         } else {
-            return inputContact.filter {
+            val filteredContacts =   inputContact.filter {
                 it.name.contains(filter, ignoreCase = true) ||
                         it.phone.contains(filter,ignoreCase = true) ||
                         it.type.contains(filter, ignoreCase = true)
             }
             Timber.d("Something to filter")
+            if (filteredContacts.isEmpty()) {
+                Timber.d("No contacts match the filter")
+                return emptyList()
+            } else {
+                Timber.d("Filtered contacts: ${filteredContacts.size}")
+                return filteredContacts
+            }
         }
-        return inputContact
     }
-
 }
+
