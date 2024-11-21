@@ -95,16 +95,21 @@ class MainActivity : AppCompatActivity() {
         Timber.d("Trying filter")
         if (filter.isEmpty()) {
             return  inputContact
-            Timber.d("Nothing to filter")
         } else {
-            return inputContact.filter {
+            val filteredContacts =   inputContact.filter {
                 it.name.contains(filter, ignoreCase = true) ||
                         it.phone.contains(filter,ignoreCase = true) ||
                         it.type.contains(filter, ignoreCase = true)
             }
-            Timber.d("Something to filter")
+            if (filteredContacts.isEmpty()) {
+                Timber.d("No contacts match the filter")
+                return emptyList()
+            } else {
+                Timber.d("Filtered contacts: ${filteredContacts.size}")
+                return filteredContacts
+            }
         }
-        return inputContact
+
     }
 
 }
