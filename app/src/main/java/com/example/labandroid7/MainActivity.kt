@@ -1,17 +1,12 @@
 package com.example.labandroid7
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.EditText
-import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.view.menu.MenuView.ItemView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.GsonBuilder
@@ -22,38 +17,59 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
-import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         Timber.plant(Timber.DebugTree())
 
-        val searchButton: Button = findViewById(R.id.btn_search)
+
+        val prefs = getSharedPreferences("my_prefs", MODE_PRIVATE)
+        val toolbar : Toolbar = findViewById(R.id.toolbar);
         val searchEditText: EditText = findViewById(R.id.et_search)
-        lateinit var privateContactList: List<Contact>
-        lateinit var MyAdapter: ContactAdapter
+        var privateContactList: List<Contact> = emptyList()
+        var myAdapter = ContactAdapter()
         val recyclerView: RecyclerView = findViewById(R.id.rView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-
+        val savedFilter =  prefs.getString("SEARCH_FILTER", "something" )
         CoroutineScope(Dispatchers.IO).launch {
             val contacts = getContacts()
             privateContactList = contacts
             withContext(Dispatchers.Main){
-                MyAdapter = ContactAdapter(contacts)
-                recyclerView.adapter = MyAdapter
+                myAdapter.submitList(contacts)
+                recyclerView.adapter = myAdapter
             }
         }
-
-
-        searchButton.setOnClickListener{
-            val filter = searchEditText.text.toString()
-            Timber.d("Search started")
-            val filtered = filtered(privateContactList, filter)
-            MyAdapter.updateContacts(filtered)
+        if (savedFilter != null) {
+            val filtered = filtered(privateContactList, savedFilter)
+            searchEditText.setText(savedFilter)
+            myAdapter.submitList(filtered)
+            myAdapter.notifyDataSetChanged()
         }
+
+        searchEditText.addTextChangedListener (object: TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val filter = searchEditText.text.toString()
+                Timber.d("Search started")
+                val filtered = filtered(privateContactList, filter)
+                myAdapter.submitList(filtered)
+                myAdapter.notifyDataSetChanged()
+            }
+
+            override fun afterTextChanged(s: Editable?)
+            {
+                Timber.i("it is  $savedFilter")
+                val editor =  prefs!!.edit()
+                editor.putString("SEARCH_FILTER", s.toString())
+                editor.apply()
+            }
+        })
+
+
     }
 
     private suspend fun getContacts() : List<Contact>{
@@ -79,16 +95,21 @@ class MainActivity : AppCompatActivity() {
         Timber.d("Trying filter")
         if (filter.isEmpty()) {
             return  inputContact
-            Timber.d("Nothing to filter")
         } else {
-            return inputContact.filter {
+            val filteredContacts =   inputContact.filter {
                 it.name.contains(filter, ignoreCase = true) ||
                         it.phone.contains(filter,ignoreCase = true) ||
                         it.type.contains(filter, ignoreCase = true)
             }
-            Timber.d("Something to filter")
+            if (filteredContacts.isEmpty()) {
+                Timber.d("No contacts match the filter")
+                return emptyList()
+            } else {
+                Timber.d("Filtered contacts: ${filteredContacts.size}")
+                return filteredContacts
+            }
         }
-        return inputContact
+
     }
 
 }
