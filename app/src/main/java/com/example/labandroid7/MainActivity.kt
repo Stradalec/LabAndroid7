@@ -1,21 +1,12 @@
 package com.example.labandroid7
 
-import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.view.menu.MenuView.ItemView
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.GsonBuilder
@@ -26,12 +17,10 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
-import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         Timber.plant(Timber.DebugTree())
 
@@ -39,8 +28,8 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("my_prefs", MODE_PRIVATE)
         val toolbar : Toolbar = findViewById(R.id.toolbar);
         val searchEditText: EditText = findViewById(R.id.et_search)
-        lateinit var privateContactList: List<Contact>
-        lateinit var MyAdapter: ContactAdapter
+        var privateContactList: List<Contact> = emptyList()
+        var myAdapter = ContactAdapter()
         val recyclerView: RecyclerView = findViewById(R.id.rView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         val savedFilter =  prefs.getString("SEARCH_FILTER", "something" )
@@ -48,17 +37,16 @@ class MainActivity : AppCompatActivity() {
             val contacts = getContacts()
             privateContactList = contacts
             withContext(Dispatchers.Main){
-                MyAdapter = ContactAdapter(ContactDiffCallback())
-                MyAdapter.submitList(contacts)
-                recyclerView.adapter = MyAdapter
+                myAdapter.submitList(contacts)
+                recyclerView.adapter = myAdapter
             }
         }
-
-        /*if (savedFilter != null) {
+        if (savedFilter != null) {
             val filtered = filtered(privateContactList, savedFilter)
-            MyAdapter.submitList(filtered)
-            MyAdapter.notifyDataSetChanged()
-        }*/ //Этот код вроде бы отвечает требованиям задания, но крашит программу.
+            searchEditText.setText(savedFilter)
+            myAdapter.submitList(filtered)
+            myAdapter.notifyDataSetChanged()
+        }
 
         searchEditText.addTextChangedListener (object: TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -68,8 +56,8 @@ class MainActivity : AppCompatActivity() {
                 val filter = searchEditText.text.toString()
                 Timber.d("Search started")
                 val filtered = filtered(privateContactList, filter)
-                MyAdapter.submitList(filtered)
-                MyAdapter.notifyDataSetChanged()
+                myAdapter.submitList(filtered)
+                myAdapter.notifyDataSetChanged()
             }
 
             override fun afterTextChanged(s: Editable?)
