@@ -1,6 +1,8 @@
 package com.example.labandroid7
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +12,7 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuView.ItemView
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         Timber.plant(Timber.DebugTree())
 
-        val searchButton: Button = findViewById(R.id.btn_search)
+        val toolbar : Toolbar = findViewById(R.id.toolbar);
         val searchEditText: EditText = findViewById(R.id.et_search)
         lateinit var privateContactList: List<Contact>
         lateinit var MyAdapter: ContactAdapter
@@ -48,12 +51,22 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        searchButton.setOnClickListener{
-            val filter = searchEditText.text.toString()
-            Timber.d("Search started")
-            val filtered = filtered(privateContactList, filter)
-            MyAdapter.updateContacts(filtered)
-        }
+        searchEditText.addTextChangedListener (object: TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val filter = searchEditText.text.toString()
+                Timber.d("Search started")
+                val filtered = filtered(privateContactList, filter)
+                MyAdapter.updateContacts(filtered)
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+            }
+        })
+
+
     }
 
     private suspend fun getContacts() : List<Contact>{
