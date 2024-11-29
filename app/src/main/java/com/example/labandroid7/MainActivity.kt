@@ -1,5 +1,7 @@
 package com.example.labandroid7
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -37,7 +39,11 @@ class MainActivity : AppCompatActivity() {
         val toolbar : Toolbar = findViewById(R.id.toolbar);
         val searchEditText: EditText = findViewById(R.id.et_search)
         var privateContactList: List<Contact>  = emptyList()
-        var myAdapter =  ContactAdapter()
+        var myAdapter =  ContactAdapter() {
+            val intent = Intent(Intent.ACTION_DIAL)
+            intent.data = Uri.parse("tel:${it}")
+            this.startActivity(intent)
+        }
         val recyclerView: RecyclerView = findViewById(R.id.rView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 

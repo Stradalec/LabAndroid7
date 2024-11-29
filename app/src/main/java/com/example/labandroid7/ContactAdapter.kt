@@ -11,12 +11,12 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 
-class ContactAdapter : ListAdapter<Contact, ContactAdapter.ContactViewHolder>(ContactDiffCallback()){
+class ContactAdapter(private val onClick: (String) -> Unit) : ListAdapter<Contact, ContactAdapter.ContactViewHolder>(ContactDiffCallback()){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.rview_item, parent, false)
-        return ContactViewHolder(view)
+        return ContactViewHolder(view, onClick)
     }
 
     override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
@@ -24,7 +24,7 @@ class ContactAdapter : ListAdapter<Contact, ContactAdapter.ContactViewHolder>(Co
         holder.bind(contact)
     }
 
-    class ContactViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class ContactViewHolder(itemView: View, private var onClick: (String) -> Unit) : RecyclerView.ViewHolder(itemView) {
         private val nameTextView: TextView = itemView.findViewById(R.id.textName)
         private val phoneTextView: TextView = itemView.findViewById(R.id.textPhone)
         private val typeTextView: TextView = itemView.findViewById(R.id.textType)
@@ -34,9 +34,7 @@ class ContactAdapter : ListAdapter<Contact, ContactAdapter.ContactViewHolder>(Co
             phoneTextView.text = contact.phone
             typeTextView.text = contact.type
             itemView.setOnClickListener {
-                val intent = Intent(Intent.ACTION_DIAL)
-                intent.data = Uri.parse("tel:${contact.phone}")
-                itemView.context.startActivity(intent)
+                onClick(contact.phone)
             }
         }
     }
